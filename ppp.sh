@@ -44,17 +44,33 @@ printf "\nPPP>"
  
 # Set the kernel to router mode
 sysctl -q net.ipv4.ip_forward=1
+# Flush iptables
+#iptables -t filter -F PREROUTING
+#iptables -t filter -F FORWARD
+#iptables -t nat -F POSTROUTING
+#iptables -t nat -F OUTPUT
+ 
  
 # Share eth0 over ppp0
+iptables -F
+iptables -X
+iptables -Z
+iptables -t nat -F
+iptables -t nat -X
+iptables -t filter -F
+iptables -t filter -X
 iptables -t nat -A POSTROUTING -o $etherp -j MASQUERADE
 iptables -t filter -A FORWARD -i ppp0 -o $etherp -m state --state RELATED,ESTABLISHED -j ACCEPT
 iptables -t filter -A FORWARD -i $etherp -o ppp0 -j ACCEPT
+#iptables -t nat -A PREROUTING -i ppp0 -p tcp -m multiport --dports 80,8080,443 -j DNAT --to-destination 192.168.1.15:80
  
 # Run PPP daemon and establish a link.
 pppd noauth nodetach local lock lcp-echo-interval $lcpidle lcp-echo-failure 3 proxyarp ms-dns 8.8.4.4 ms-dns 8.8.8.8 10.0.100.1:10.0.100.2 /dev/$serport $baud
  
 # Flush iptables
+iptables -t filter -F PREROUTING
 iptables -t filter -F FORWARD
 iptables -t nat -F POSTROUTING
+iptables -t nat -F OUTPUT
  
 printf "\nPPP link terminated.\n"

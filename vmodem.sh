@@ -45,7 +45,7 @@ vmodver=1.5.3
 # to use /dev/ttyUSB0 for communication.
 # Common values: ttyUSB0 or ttyAMA0
 #
-serport=ttyUSB0
+serport=ttyS0
  
 # Variable: baud
 # baud will tell the script to open the serial port at
@@ -59,13 +59,14 @@ serport=ttyUSB0
 #
 #baud=9600
 #baud=38400
-baud=57600
+#baud=57600
+baud=115200
  
 # Variable: etherp
 # Sets the name of the ethernet device for PPP connections.
 # Usually eth0 for wired and wlan0 for wireless.
 #
-etherp=eth0
+etherp=enp0s3
  
 # Variable: echoser
 # echoser sets the default behaviour of echoing serial
@@ -103,6 +104,10 @@ export TERM
 #INITIALIZE SERIAL SETTINGS
 ttyinit () {
   stty -F /dev/$serport $baud
+  setserial /dev/ttyS0 spd_cust baud_base 115200 divisor 2.5
+  #stty ispeed $baud
+  #stty ospeed $baud
+
   stty -F /dev/$serport sane
   stty -F /dev/$serport raw
   stty -F /dev/$serport -echo -icrnl clocal
@@ -223,6 +228,7 @@ while [ "$continue" != "1" ]; do
         number=`echo $seq |tr -dc '0-9'`
         if [ ! -z "$number" ]; then
           if [[ $resultverbose == 1 ]]; then sendtty "RINGING"; sleep 1; fi
+	#if [ $baud = 9600 ]; then play 96to144k.wav; fi;
           if [ -f "$number.sh" ]; then
             if [[ $resultverbose == 1 ]]; then sendtty "CONNECT $baud"; else sendtty "1"; fi
             # Execute dialed script!
